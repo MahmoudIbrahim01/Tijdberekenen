@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bereken Tijd met Pauze</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+        }
+        .input-field {
+            margin: 10px 0;
+            padding: 5px;
+            font-size: 18px;
+        }
+        .output {
+            font-size: 24px;
+            margin-top: 20px;
+        }
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Bereken Tijd met Pauze</h1>
+    <div class="container">
+        <div>
+            <label for="start-time">Starttijd (HH:MM):</label><br>
+            <input type="time" id="start-time" class="input-field">
+        </div>
+        <div>
+            <label for="end-time">Eindtijd (HH:MM):</label><br>
+            <input type="time" id="end-time" class="input-field">
+        </div>
+        <div>
+            <label for="pause-time">Pauzetijd (in minuten):</label><br>
+            <input type="number" id="pause-time" class="input-field" min="0">
+        </div>
+        <button id="calculateButton">Bereken Tijd</button>
+
+        <div id="result" class="output"></div>
+    </div>
+
+    <script>
+        document.getElementById('calculateButton').addEventListener('click', function() {
+            const startTime = document.getElementById('start-time').value;
+            const endTime = document.getElementById('end-time').value;
+            const pauseTime = parseInt(document.getElementById('pause-time').value);
+
+            if (!startTime || !endTime || isNaN(pauseTime)) {
+                alert('Vul alle velden correct in.');
+                return;
+            }
+
+            // Start- en eindtijd omzetten naar minuten vanaf middernacht
+            const startParts = startTime.split(':');
+            const endParts = endTime.split(':');
+            const startMinutes = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
+            const endMinutes = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
+
+            // Totaal aantal minuten berekenen tussen start- en eindtijd
+            let totalMinutes = endMinutes - startMinutes;
+
+            // Als de eindtijd kleiner is dan de starttijd, dan is de tijdspanning over middernacht heen.
+            if (totalMinutes < 0) {
+                totalMinutes += 24 * 60; // Voeg 24 uur toe (1440 minuten)
+            }
+
+            // Pauzetijd aftrekken
+            totalMinutes -= pauseTime;
+
+            // Minuten omrekenen naar uren en minuten
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+
+            // Resultaat tonen
+            document.getElementById('result').textContent = `Totale tijd: ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} uur`;
+        });
+    </script>
+
+</body>
+</html>
