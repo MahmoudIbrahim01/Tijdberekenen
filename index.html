@@ -1,93 +1,253 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bereken Tijd met Pauze</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 50px;
-        }
-        .container {
-            width: 80%;
-            margin: 0 auto;
-        }
-        .input-field {
-            margin: 10px 0;
-            padding: 5px;
-            font-size: 18px;
-        }
-        .output {
-            font-size: 24px;
-            margin-top: 20px;
-        }
-        button {
-            font-size: 18px;
-            padding: 10px 20px;
-            cursor: pointer;
-            margin: 10px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tijd Calculator Pro</title>
+
+<style>
+:root {
+    --bg: #f4f6f8;
+    --card: #ffffff;
+    --text: #222;
+    --accent: #4f46e5;
+    --muted: #666;
+}
+
+body.dark {
+    --bg: #121212;
+    --card: #1e1e1e;
+    --text: #f1f1f1;
+    --muted: #aaa;
+}
+
+body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    transition: 0.3s;
+}
+
+.card {
+    background: var(--card);
+    padding: 30px;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+label {
+    font-weight: 600;
+    margin-top: 15px;
+    display: block;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    margin-top: 5px;
+}
+
+.pause-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.pause-row input {
+    flex: 1;
+}
+
+button {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 15px;
+    width: 100%;
+}
+
+button.secondary {
+    background: transparent;
+    color: var(--accent);
+    border: 1px dashed var(--accent);
+}
+
+.result {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 12px;
+    background: rgba(79,70,229,0.1);
+    text-align: center;
+    font-size: 18px;
+}
+
+.small {
+    font-size: 14px;
+    color: var(--muted);
+    margin-top: 5px;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.toggle {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+}
+</style>
 </head>
+
 <body>
+<div class="card">
+    <button class="toggle" id="themeToggle">🌙</button>
+    <h1>⏱ Tijd Calculator</h1>
 
-    <h1>Bereken Tijd met Pauze</h1>
-    <div class="container">
-        <div>
-            <label for="start-time">Starttijd (HH:MM):</label><br>
-            <input type="time" id="start-time" class="input-field">
-        </div>
-        <div>
-            <label for="end-time">Eindtijd (HH:MM):</label><br>
-            <input type="time" id="end-time" class="input-field">
-        </div>
-        <div>
-            <label for="pause-time">Pauzetijd (in minuten):</label><br>
-            <input type="number" id="pause-time" class="input-field" min="0">
-        </div>
-        <button id="calculateButton">Bereken Tijd</button>
+    <label>Starttijd</label>
+    <input type="time" id="start">
 
-        <div id="result" class="output"></div>
+    <label>Eindtijd</label>
+    <input type="time" id="end">
+
+    <label>Pauzes (minuten)</label>
+    <div id="pauses"></div>
+
+    <button class="secondary" id="addPause">+ Pauze toevoegen</button>
+
+    <div class="result" id="result">
+        Vul tijden in…
+        <div class="small" id="extra"></div>
     </div>
 
-    <script>
-        document.getElementById('calculateButton').addEventListener('click', function() {
-            const startTime = document.getElementById('start-time').value;
-            const endTime = document.getElementById('end-time').value;
-            const pauseTime = parseInt(document.getElementById('pause-time').value);
+    <div class="actions">
+        <button id="copy">📋 Kopieer</button>
+        <button id="clear">🧹 Reset</button>
+    </div>
+</div>
 
-            if (!startTime || !endTime || isNaN(pauseTime)) {
-                alert('Vul alle velden correct in.');
-                return;
-            }
+<script>
+const start = document.getElementById('start');
+const end = document.getElementById('end');
+const pauses = document.getElementById('pauses');
+const result = document.getElementById('result');
+const extra = document.getElementById('extra');
 
-            // Start- en eindtijd omzetten naar minuten vanaf middernacht
-            const startParts = startTime.split(':');
-            const endParts = endTime.split(':');
-            const startMinutes = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
-            const endMinutes = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
+function addPause(value = '') {
+    const div = document.createElement('div');
+    div.className = 'pause-row';
+    div.innerHTML = `
+        <input type="number" min="0" placeholder="Pauze (min)" value="${value}">
+        <button onclick="this.parentElement.remove(); calculate()">✖</button>
+    `;
+    pauses.appendChild(div);
+}
 
-            // Totaal aantal minuten berekenen tussen start- en eindtijd
-            let totalMinutes = endMinutes - startMinutes;
+document.getElementById('addPause').onclick = () => {
+    addPause();
+    calculate();
+};
 
-            // Als de eindtijd kleiner is dan de starttijd, dan is de tijdspanning over middernacht heen.
-            if (totalMinutes < 0) {
-                totalMinutes += 24 * 60; // Voeg 24 uur toe (1440 minuten)
-            }
+function calculate() {
+    if (!start.value || !end.value) {
+        result.textContent = 'Vul tijden in…';
+        extra.textContent = '';
+        return;
+    }
 
-            // Pauzetijd aftrekken
-            totalMinutes -= pauseTime;
+    const [sh, sm] = start.value.split(':').map(Number);
+    const [eh, em] = end.value.split(':').map(Number);
 
-            // Minuten omrekenen naar uren en minuten
-            const hours = Math.floor(totalMinutes / 60);
-            const minutes = totalMinutes % 60;
+    let startMin = sh * 60 + sm;
+    let endMin = eh * 60 + em;
+    let total = endMin - startMin;
 
-            // Resultaat tonen
-            document.getElementById('result').textContent = `Totale tijd: ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} uur`;
-        });
-    </script>
+    let nightShift = false;
+    if (total < 0) {
+        total += 1440;
+        nightShift = true;
+    }
 
+    let pauseTotal = 0;
+    document.querySelectorAll('#pauses input').forEach(p => {
+        pauseTotal += Number(p.value) || 0;
+    });
+
+    total -= pauseTotal;
+
+    if (total < 0) {
+        result.textContent = '❌ Pauze langer dan werktijd';
+        extra.textContent = '';
+        return;
+    }
+
+    const h = Math.floor(total / 60);
+    const m = total % 60;
+    const dec = (total / 60).toFixed(2);
+
+    result.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')} uur`;
+    extra.textContent = `${dec} uur ${nightShift ? '🌙 Nachtshift' : ''}`;
+
+    save();
+}
+
+[start, end].forEach(i => i.addEventListener('input', calculate));
+pauses.addEventListener('input', calculate);
+
+function save() {
+    const data = {
+        start: start.value,
+        end: end.value,
+        pauses: [...document.querySelectorAll('#pauses input')].map(p => p.value)
+    };
+    localStorage.setItem('timeCalc', JSON.stringify(data));
+}
+
+function load() {
+    const data = JSON.parse(localStorage.getItem('timeCalc'));
+    if (!data) return;
+    start.value = data.start;
+    end.value = data.end;
+    data.pauses.forEach(p => addPause(p));
+    calculate();
+}
+
+document.getElementById('copy').onclick = () => {
+    navigator.clipboard.writeText(result.textContent + ' (' + extra.textContent + ')');
+};
+
+document.getElementById('clear').onclick = () => {
+    localStorage.clear();
+    location.reload();
+};
+
+document.getElementById('themeToggle').onclick = () => {
+    document.body.classList.toggle('dark');
+};
+
+load();
+addPause();
+</script>
 </body>
 </html>
