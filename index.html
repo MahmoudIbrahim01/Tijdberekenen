@@ -66,11 +66,27 @@ input {
     display: flex;
     gap: 10px;
     margin-top: 10px;
+    align-items: center;
 }
 
 .pause-row input {
     flex: 1;
+    padding: 12px;
+    font-size: 16px;
 }
+
+.pause-row button {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    background: #ef4444;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
 
 button {
     background: var(--accent);
@@ -159,7 +175,7 @@ function addPause(value = '') {
     div.className = 'pause-row';
     div.innerHTML = `
         <input type="number" min="0" placeholder="Pauze (min)" value="${value}">
-        <button onclick="this.parentElement.remove(); calculate()">✖</button>
+        <button onclick="this.parentElement.remove(); calculate()">🗑</button>
     `;
     pauses.appendChild(div);
 }
@@ -251,3 +267,4 @@ addPause();
 </script>
 </body>
 </html>
+
